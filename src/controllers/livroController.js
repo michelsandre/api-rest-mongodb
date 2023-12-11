@@ -1,4 +1,5 @@
 import livro from "../models/Livro.js";
+import { autor } from "../models/Autor.js";
 
 class LivroController {
   static async listarLivros(req, res) {
@@ -25,9 +26,21 @@ class LivroController {
   }
 
   static async cadastrarLivro(req, res) {
+    const novoLivro = req.body;
     try {
-      const novoLivro = await livro.create(req.body);
-      res.status(201).json({ message: "criado com sucesso", livro: novoLivro });
+      const autorEncontrado = novoLivro.autor
+        ? await autor.findById(novoLivro.autor)
+        : "";
+      const livroCompleto = {
+        ...novoLivro,
+        autor: { ...autorEncontrado._doc },
+      };
+      const livroCriado = await livro.create(
+        novoLivro.autor ? livroCompleto : novoLivro
+      );
+      res
+        .status(201)
+        .json({ message: "criado com sucesso", livro: livroCriado });
     } catch (erro) {
       res
         .status(500)
@@ -36,9 +49,21 @@ class LivroController {
   }
 
   static async atualizarLivroPorId(req, res) {
+    const editarLivro = req.body;
     try {
       const id = req.params.id;
-      await livro.findByIdAndUpdate(id, req.body);
+      const autorEncontrado = editarLivro.autor
+        ? await autor.findById(editarLivro.autor)
+        : "";
+
+      const livroCompleto = {
+        ...editarLivro,
+        autor: { ...autorEncontrado._doc },
+      };
+      await livro.findByIdAndUpdate(
+        id,
+        editarLivro.autor ? livroCompleto : editarLivro
+      );
       res.status(200).json({ message: "Livro atualizado" });
     } catch (erro) {
       res
@@ -56,6 +81,20 @@ class LivroController {
       res
         .status(500)
         .json({ message: `${erro.message} - falha ao apagar o livro` });
+    }
+  }
+
+  static async listarLivrosPorEditora(req, res) {
+    // Busca por "contém" utilizando expressão regular
+    const editora = RegExp(req.query.editora, "i");
+
+    try {
+      const livrosPorEditora = await livro.find({ editora: editora });
+      res.status(200).json(livrosPorEditora);
+    } catch (erro) {
+      res.status(500).json({
+        message: `${erro.message} - falha na requisição do livro por editora`,
+      });
     }
   }
 }
