@@ -4,7 +4,7 @@ import { autor } from "../models/Autor.js";
 class LivroController {
   static async listarLivros(req, res) {
     try {
-      const listaLivros = await livro.find({});
+      const listaLivros = await livro.find({}).populate("autor").exec();
       res.status(200).json(listaLivros);
     } catch (erro) {
       res
@@ -25,22 +25,25 @@ class LivroController {
     }
   }
 
+  //Usando metodo reference (comentado é o Embedding)
   static async cadastrarLivro(req, res) {
-    const novoLivro = req.body;
+    // const novoLivro = req.body;
     try {
-      const autorEncontrado = novoLivro.autor
-        ? await autor.findById(novoLivro.autor)
-        : "";
-      const livroCompleto = {
-        ...novoLivro,
-        autor: { ...autorEncontrado._doc },
-      };
-      const livroCriado = await livro.create(
-        novoLivro.autor ? livroCompleto : novoLivro
-      );
-      res
-        .status(201)
-        .json({ message: "criado com sucesso", livro: livroCriado });
+      const novoLivro = await livro.create(req.body);
+      res.status(201).json({ message: "livro criado", livro: novoLivro });
+      // const autorEncontrado = novoLivro.autor
+      //   ? await autor.findById(novoLivro.autor)
+      //   : "";
+      // const livroCompleto = {
+      //   ...novoLivro,
+      //   autor: { ...autorEncontrado._doc },
+      // };
+      // const livroCriado = await livro.create(
+      //   novoLivro.autor ? livroCompleto : novoLivro
+      // );
+      // res
+      //   .status(201)
+      //   .json({ message: "criado com sucesso", livro: livroCriado });
     } catch (erro) {
       res
         .status(500)
@@ -89,7 +92,9 @@ class LivroController {
     const editora = RegExp(req.query.editora, "i");
 
     try {
-      const livrosPorEditora = await livro.find({ editora: editora });
+      const livrosPorEditora = await livro
+        .find({ editora: editora })
+        .populate("autor");
       res.status(200).json(livrosPorEditora);
     } catch (erro) {
       res.status(500).json({
