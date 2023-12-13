@@ -4,6 +4,9 @@
   "description": "API para sistema de livros",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
