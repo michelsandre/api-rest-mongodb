@@ -1,7 +1,6 @@
 import express from "express";
-import conectaDB from "./src/config/dbConnect.js";
-import routes from "./src/config/routes/index.js";
-import "dotenv/config";
+import conectaDB from "./config/dbConnect.js";
+import routes from "./config/routes/index.js";
 
 const conexao = await conectaDB();
 
@@ -15,12 +14,5 @@ conexao.once("open", () => {
 
 const app = express();
 routes(app);
-
-//Novo implementacao
-const PORT = 4000;
-
-app.listen(PORT, () => {
-  console.log(`Server listening on locahost:${PORT}`);
-});
 
 export default app;
