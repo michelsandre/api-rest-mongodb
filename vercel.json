@@ -15,7 +15,7 @@
     ],
     "header": [
       {
-        "source": "(.*)",
+        "source": "/(.*)",
         "header":[
           { "key": "Access-Control-Allow-Origin", "value": "*" }
         ]
