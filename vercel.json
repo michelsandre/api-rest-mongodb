@@ -13,7 +13,7 @@
         "dest": "/server.js"
       }
     ],
-    "header": [
+    "headers": [
       {
         "source": "*.js",
         "header":[
