@@ -1,6 +1,6 @@
 import express from "express";
-import conectaDB from "./config/dbConnect.js";
-import routes from "./config/routes/index.js";
+import conectaDB from "./src/config/dbConnect.js";
+import routes from "./src/config/routes/index.js";
 import "dotenv/config";
 
 const conexao = await conectaDB();
