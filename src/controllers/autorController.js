@@ -4,6 +4,7 @@ class AutorController {
   static async listarAutores(req, res) {
     try {
       const listaAutores = await autor.find({});
+
       res.status(200).json(listaAutores);
     } catch (erro) {
       res
@@ -16,11 +17,16 @@ class AutorController {
     try {
       const id = req.params.id;
       const autorEncontrado = await autor.findById(id);
-      res.status(200).json(autorEncontrado);
+
+      if (autorEncontrado) {
+        res.status(200).json(autorEncontrado);
+      } else {
+        res.status(404).json({ message: `Id do Autor não localizado` });
+      }
     } catch (erro) {
       res
         .status(500)
-        .json({ message: `${erro.message} - falha na requisição do autor` });
+        .json({ message: `${erro.message} - falha na requisição do Autor` });
     }
   }
 
