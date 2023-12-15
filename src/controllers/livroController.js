@@ -2,31 +2,32 @@ import livro from "../models/Livro.js";
 import { autor } from "../models/Autor.js";
 
 class LivroController {
-  static async listarLivros(req, res) {
+  static async listarLivros(req, res, next) {
     try {
       const listaLivros = await livro.find({}).populate("autor").exec();
       res.status(200).json(listaLivros);
     } catch (erro) {
-      res
-        .status(500)
-        .json({ message: `${erro.message} - falha na requisição` });
+      next(erro);
     }
   }
 
-  static async listarLivroPorId(req, res) {
+  static async listarLivroPorId(req, res, next) {
     try {
       const id = req.params.id;
       const livroEncontrado = await livro.findById(id);
-      res.status(200).json(livroEncontrado);
+
+      if (livroEncontrado) {
+        res.status(200).json(livroEncontrado);
+      } else {
+        res.status(404).json({ message: `Id do Livro não localizado` });
+      }
     } catch (erro) {
-      res
-        .status(500)
-        .json({ message: `${erro.message} - falha na requisição do livro` });
+      next(erro);
     }
   }
 
   //Usando metodo reference (comentado é o Embedding)
-  static async cadastrarLivro(req, res) {
+  static async cadastrarLivro(req, res, next) {
     // const novoLivro = req.body;
     try {
       const novoLivro = await livro.create(req.body);
@@ -45,13 +46,11 @@ class LivroController {
       //   .status(201)
       //   .json({ message: "criado com sucesso", livro: livroCriado });
     } catch (erro) {
-      res
-        .status(500)
-        .json({ message: `${erro.message} - falha ao cadastrar livro` });
+      next(erro);
     }
   }
 
-  static async atualizarLivroPorId(req, res) {
+  static async atualizarLivroPorId(req, res, next) {
     const editarLivro = req.body;
     try {
       const id = req.params.id;
@@ -69,25 +68,21 @@ class LivroController {
       );
       res.status(200).json({ message: "Livro atualizado" });
     } catch (erro) {
-      res
-        .status(500)
-        .json({ message: `${erro.message} - falha na atualização do livro` });
+      next(erro);
     }
   }
 
-  static async apagarLivroPorId(req, res) {
+  static async apagarLivroPorId(req, res, next) {
     try {
       const id = req.params.id;
       await livro.findByIdAndDelete(id);
       res.status(200).json({ message: "Livro apagado!" });
     } catch (erro) {
-      res
-        .status(500)
-        .json({ message: `${erro.message} - falha ao apagar o livro` });
+      next(erro);
     }
   }
 
-  static async listarLivrosPorEditora(req, res) {
+  static async listarLivrosPorEditora(req, res, next) {
     // Busca por "contém" utilizando expressão regular
     const editora = RegExp(req.query.editora, "i");
 
@@ -97,9 +92,7 @@ class LivroController {
         .populate("autor");
       res.status(200).json(livrosPorEditora);
     } catch (erro) {
-      res.status(500).json({
-        message: `${erro.message} - falha na requisição do livro por editora`,
-      });
+      next(erro);
     }
   }
 }
