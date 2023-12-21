@@ -1,5 +1,6 @@
 import livro from "../models/Livro.js";
 import { autor } from "../models/Autor.js";
+import NaoEncontrado from "../errros/NaoEncontrado.js";
 
 class LivroController {
   static async listarLivros(req, res, next) {
@@ -19,7 +20,7 @@ class LivroController {
       if (livroEncontrado) {
         res.status(200).json(livroEncontrado);
       } else {
-        res.status(404).json({ message: `Id do Livro não localizado` });
+        next(new NaoEncontrado("Id do Livro não localizado"));
       }
     } catch (erro) {
       next(erro);
