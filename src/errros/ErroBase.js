@@ -5,7 +5,7 @@ class ErroBase extends Error {
     this.status = status;
   }
 
-  enviarReposta(res) {
+  enviarReposta(res, erro) {
     res.status(this.status).json({
       mensagem: this.mensagem,
       status: this.status,

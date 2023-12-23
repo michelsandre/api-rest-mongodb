@@ -1,12 +1,13 @@
-import livro from "../models/Livro.js";
-import { autor } from "../models/Autor.js";
+import { livro } from "../models/index.js";
+import { autor } from "../models/index.js";
 import NaoEncontrado from "../errros/NaoEncontrado.js";
 
 class LivroController {
   static async listarLivros(req, res, next) {
     try {
-      const listaLivros = await livro.find({}).populate("autor").exec();
-      res.status(200).json(listaLivros);
+      const buscaLivros = livro.find();
+      req.resultado = buscaLivros;
+      next();
     } catch (erro) {
       next(erro);
     }
@@ -29,23 +30,9 @@ class LivroController {
 
   //Usando metodo reference (comentado é o Embedding)
   static async cadastrarLivro(req, res, next) {
-    // const novoLivro = req.body;
     try {
       const novoLivro = await livro.create(req.body);
       res.status(201).json({ message: "livro criado", livro: novoLivro });
-      // const autorEncontrado = novoLivro.autor
-      //   ? await autor.findById(novoLivro.autor)
-      //   : "";
-      // const livroCompleto = {
-      //   ...novoLivro,
-      //   autor: { ...autorEncontrado._doc },
-      // };
-      // const livroCriado = await livro.create(
-      //   novoLivro.autor ? livroCompleto : novoLivro
-      // );
-      // res
-      //   .status(201)
-      //   .json({ message: "criado com sucesso", livro: livroCriado });
     } catch (erro) {
       next(erro);
     }
@@ -83,19 +70,58 @@ class LivroController {
     }
   }
 
-  static async listarLivrosPorEditora(req, res, next) {
-    // Busca por "contém" utilizando expressão regular
-    const editora = RegExp(req.query.editora, "i");
-
+  static async listarLivrosPorFiltro(req, res, next) {
     try {
-      const livrosPorEditora = await livro
-        .find({ editora: editora })
-        .populate("autor");
-      res.status(200).json(livrosPorEditora);
+      const busca = await processaBusca(req.query);
+
+      if (busca !== null) {
+        const livrosPorFiltro = livro.find(busca);
+        req.resultado = livrosPorFiltro;
+        next();
+      } else {
+        res.status(200).send([]);
+      }
     } catch (erro) {
       next(erro);
     }
   }
 }
 
+async function processaBusca(parametros) {
+  const {
+    titulo,
+    editora,
+    minPaginas,
+    maxPaginas,
+    minPreco,
+    maxPreco,
+    nomeAutor,
+  } = parametros;
+
+  let busca = {};
+
+  if (titulo) busca.titulo = { $regex: titulo, $options: "i" };
+  if (editora) busca.editora = { $regex: editora, $options: "i" };
+  if (minPaginas) busca.paginas = { $gte: minPaginas };
+  if (maxPaginas) busca.paginas = { $lte: maxPaginas };
+  if (minPaginas && maxPaginas)
+    busca.paginas = { $gte: minPaginas, $lte: maxPaginas };
+  if (minPreco) busca.preco = { $gte: minPreco };
+  if (maxPreco) busca.preco = { $lte: maxPreco };
+  if (minPreco && maxPreco) busca.preco = { $gte: minPreco, $lte: maxPreco };
+
+  if (nomeAutor) {
+    const buscaAutor = await autor.findOne({
+      nome: { $regex: nomeAutor, $options: "i" },
+    });
+
+    if (buscaAutor !== null) {
+      busca.autor = buscaAutor._id;
+    } else {
+      busca = null;
+    }
+  }
+
+  return busca;
+}
 export default LivroController;
